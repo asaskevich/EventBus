@@ -81,3 +81,5 @@ bus.Subscribe("channel:handler", Handler)
 bus.Publish("channel:handler", "Hello, World!");
 ```
 
+#### Support
+If you do have a contribution for the package feel free to put up a Pull Request or open Issue.
