@@ -11,6 +11,7 @@ type EventBus struct {
 	handlers map[string]reflect.Value
 	flagOnce map[string]bool
 	lock     sync.Mutex
+	wg		 sync.WaitGroup
 }
 
 // New returns new EventBus with empty handlers.
@@ -19,6 +20,7 @@ func New() *EventBus {
 		make(map[string]reflect.Value),
 		make(map[string]bool),
 		sync.Mutex{},
+		sync.WaitGroup{},
 	}
 }
 
@@ -57,14 +59,12 @@ func (bus *EventBus) Unsubscribe(channel string) {
 	bus.lock.Unlock()
 }
 
-func (bus *EventBus) PublishAsync(channel string, args ...interface{}) *sync.WaitGroup {
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
+func (bus *EventBus) PublishAsync(channel string, args ...interface{}) {
+	bus.wg.Add(1)
 	go func() {
-		defer wg.Done()
+		defer bus.wg.Done()
 		bus.Publish(channel, args...)
 	}()
-	return wg
 }
 
 // Publish - execute callback defined for a channel. Any addional argument will be tranfered to the callback.
@@ -83,4 +83,8 @@ func (bus *EventBus) Publish(channel string, args ...interface{}) {
 		}
 	}
 	bus.lock.Unlock()
+}
+
+func (bus *EventBus) WaitAsync () {
+	bus.wg.Wait();
 }
