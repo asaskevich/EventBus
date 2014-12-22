@@ -24,7 +24,8 @@ func New() *EventBus {
 	}
 }
 
-// Subscribe - subscribe to a topic.
+// Subscribe subscribes to a topic.
+// Returns error if `fn` is not a function.
 func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
 	bus.lock.Lock()
 	defer bus.lock.Unlock()
@@ -37,7 +38,8 @@ func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
 	return nil
 }
 
-// SubscribeOnce - subscribe to a topic once. Handler will be removed after executing.
+// SubscribeOnce subscribes to a topic once. Handler will be removed after executing.
+// Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
 	bus.lock.Lock()
 	defer bus.lock.Unlock()
@@ -50,7 +52,16 @@ func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
 	return nil
 }
 
-// Unsubscribe - remove callback defined for a topic.
+// HasCallback returns true if exists any callback subscribed to the topic.
+func (bus *EventBus) HasCallback(topic string) bool {
+	bus.lock.Lock()
+	defer bus.lock.Unlock()
+	_, ok := bus.handlers[topic];
+	return ok
+}
+
+// Unsubscribe removes callback defined for a topic.
+// Returns error if there are no callbacks subscribed to the topic.
 func (bus *EventBus) Unsubscribe(topic string) error {
 	bus.lock.Lock()
 	defer bus.lock.Unlock()
@@ -61,6 +72,8 @@ func (bus *EventBus) Unsubscribe(topic string) error {
 	return fmt.Errorf("topic %s doesn't exist", topic)
 }
 
+// PublishAsync executes callback defined for a topic asynchronously. Useful for slow callbacks.
+// Any addional argument will be tranfered to the callback.
 func (bus *EventBus) PublishAsync(topic string, args ...interface{}) {
 	bus.wg.Add(1)
 	go func() {
@@ -69,17 +82,17 @@ func (bus *EventBus) PublishAsync(topic string, args ...interface{}) {
 	}()
 }
 
-// Publish - execute callback defined for a topic. Any addional argument will be tranfered to the callback.
+// Publish executes callback defined for a topic. Any addional argument will be tranfered to the callback.
 func (bus *EventBus) Publish(topic string, args ...interface{}) {
 	bus.lock.Lock()
 	defer bus.lock.Unlock()
 	if handler, ok := bus.handlers[topic]; ok {
 		removeAfterExec, _ := bus.flagOnce[topic]
-		args_ := make([]reflect.Value, 0)
+		passedArguments := make([]reflect.Value, 0)
 		for _, arg := range args {
-			args_ = append(args_, reflect.ValueOf(arg))
+			passedArguments = append(passedArguments, reflect.ValueOf(arg))
 		}
-		handler.Call(args_)
+		handler.Call(passedArguments)
 		if removeAfterExec {
 			delete(bus.handlers, topic)
 			bus.flagOnce[topic] = false
@@ -87,6 +100,7 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 	}
 }
 
+// WaitAsync waits for all async callbacks to complete
 func (bus *EventBus) WaitAsync() {
 	bus.wg.Wait()
 }

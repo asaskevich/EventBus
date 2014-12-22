@@ -1,6 +1,6 @@
 EventBus
 ======
-Package EventBus is the little and lightweight eventbus for GoLang.
+Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.
 
 #### Installation
 Make sure that Go is installed on your computer.
@@ -40,9 +40,11 @@ func main() {
 * **New()**
 * **Subscribe()**
 * **SubscribeOnce()**
+* **HasCallback()**
 * **Unsubscribe()**
 * **Publish()**
 * **PublishAsync()**
+* **WaitAsync()**
 
 #### New()
 New returns new EventBus with empty handlers.
@@ -50,40 +52,44 @@ New returns new EventBus with empty handlers.
 bus := EventBus.New();
 ```
 
-#### Subscribe(channel string, fn interface{})
-Subscribe to a channel.
+#### Subscribe(topic string, fn interface{}) error
+Subscribe to a topic. Returns error if `fn` is not a function.
 ```go
 func Handler() { ... }
 ...
-bus.Subscribe("channel:handler", Handler)
+bus.Subscribe("topic:handler", Handler)
 ```
 
-#### SubscribeOnce(channel string, fn interface{})
-Subscribe to a channel once. Handler will be removed after executing.
+#### SubscribeOnce(topic string, fn interface{}) error
+Subscribe to a topic once. Handler will be removed after executing. Returns error if `fn` is not a function.
 ```go
 func HelloWorld() { ... }
 ...
-bus.SubscribeOnce("channel:handler", HelloWorld)
+bus.SubscribeOnce("topic:handler", HelloWorld)
 ```
 
-#### Unsubscribe(channel string)
-Remove callback defined for a channel.
+#### Unsubscribe(topic string) error
+Remove callback defined for a topic. Returns error if there are no callbacks subscribed to the topic.
 ```go
-bus.Unsubscribe("channel:handler");
+bus.Unsubscribe("topic:handler");
 ```
 
-#### Publish(channel string, args ...interface{})
-Execute callback defined for a channel. Any addional argument will be tranfered to the callback.
+#### HasCallback(topic string) bool
+Returns true if exists any callback subscribed to the topic.
+
+#### Publish(topic string, args ...interface{})
+Publish executes callback defined for a topic. Any addional argument will be tranfered to the callback.
 ```go
 func Handler(str string) { ... }
 ...
-bus.Subscribe("channel:handler", Handler)
+bus.Subscribe("topic:handler", Handler)
 ...
-bus.Publish("channel:handler", "Hello, World!");
+bus.Publish("topic:handler", "Hello, World!");
 ```
 
-#### PublishAsync(channel string, args ...interface{})
-Execute callback defined for a channel asynchronously. Useful for slow callbacks.
+#### PublishAsync(topic string, args ...interface{})
+PublishAsync executes callback defined for a topic asynchronously. Useful for slow callbacks.
+Any addional argument will be tranfered to the callback.
 ```go
 func slowCalculator(a, b int) {
 	time.Sleep(3 * time.Second)
@@ -104,6 +110,9 @@ fmt.Println("end: do some stuff while waiting for a result")
 bus.WaitAsync(); // wait for all async callbacks to complete
 bus.Unsubscribe("main:slow_calculator");
 ```
+
+####  WaitAsync()
+WaitAsync waits for all async callbacks to complete.
 
 #### Support
 If you do have a contribution for the package feel free to put up a Pull Request or open Issue.
