@@ -29,7 +29,7 @@ func (bus *EventBus) Subscribe(channel string, fn interface{}) error {
 	bus.lock.Lock()
 	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
 		bus.lock.Unlock()
-		return fmt.Errorf("%s is not of type reflect.Func", fn)
+		return fmt.Errorf("%s is not of type reflect.Func", reflect.TypeOf(fn).Kind())
 	}
 	v := reflect.ValueOf(fn)
 	bus.handlers[channel] = v
@@ -43,7 +43,7 @@ func (bus *EventBus) SubscribeOnce(channel string, fn interface{}) error {
 	bus.lock.Lock()
 	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
 		bus.lock.Unlock()
-		return fmt.Errorf("%s is not of type reflect.Func", fn)
+		return fmt.Errorf("%s is not of type reflect.Func", reflect.TypeOf(fn).Kind())
 	}
 	v := reflect.ValueOf(fn)
 	bus.handlers[channel] = v
