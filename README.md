@@ -42,6 +42,7 @@ func main() {
 * **SubscribeOnce()**
 * **Unsubscribe()**
 * **Publish()**
+* **PublishAsync()**
 
 #### New()
 New returns new EventBus with empty handlers.
@@ -79,6 +80,29 @@ func Handler(str string) { ... }
 bus.Subscribe("channel:handler", Handler)
 ...
 bus.Publish("channel:handler", "Hello, World!");
+```
+
+#### PublishAsync(channel string, args ...interface{})
+Execute callback defined for a channel asynchronously. Useful for slow callbacks.
+```go
+func slowCalculator(a, b int) {
+	time.Sleep(3 * time.Second)
+	fmt.Printf("%d\n", a + b)
+}
+...
+bus := EventBus.New();
+bus.Subscribe("main:slow_calculator", slowCalculator);
+
+bus.Publish("main:slow_calculator", 20, 60); // synchronous execution means wait.
+fmt.Println("I got blocked waiting")
+
+bus.PublishAsync("main:slow_calculator", 30, 70);
+
+fmt.Println("start: do some stuff while waiting for a result")
+fmt.Println("end: do some stuff while waiting for a result") 
+
+bus.WaitAsync(); // wait for all async callbacks to complete
+bus.Unsubscribe("main:slow_calculator");
 ```
 
 #### Support
