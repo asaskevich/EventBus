@@ -23,62 +23,62 @@ func New() *EventBus {
 	}
 }
 
-// Subscribe - subscribe to a channel.
-func (bus *EventBus) Subscribe(channel string, fn interface{}) {
+// Subscribe - subscribe to a topic.
+func (bus *EventBus) Subscribe(topic string, fn interface{}) {
 	bus.lock.Lock()
 	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
 		bus.lock.Unlock()
 		return
 	}
 	v := reflect.ValueOf(fn)
-	bus.handlers[channel] = v
-	bus.flagOnce[channel] = false
+	bus.handlers[topic] = v
+	bus.flagOnce[topic] = false
 	bus.lock.Unlock()
 }
 
-// SubscribeOnce - subscribe to a channel once. Handler will be removed after executing.
-func (bus *EventBus) SubscribeOnce(channel string, fn interface{}) {
+// SubscribeOnce - subscribe to a topic once. Handler will be removed after executing.
+func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) {
 	bus.lock.Lock()
 	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
 		bus.lock.Unlock()
 		return
 	}
 	v := reflect.ValueOf(fn)
-	bus.handlers[channel] = v
-	bus.flagOnce[channel] = true
+	bus.handlers[topic] = v
+	bus.flagOnce[topic] = true
 	bus.lock.Unlock()
 }
 
-// Unsubscribe - remove callback defined for a channel.
-func (bus *EventBus) Unsubscribe(channel string) {
+// Unsubscribe - remove callback defined for a topic.
+func (bus *EventBus) Unsubscribe(topic string) {
 	bus.lock.Lock()
-	if _, ok := bus.handlers[channel]; ok {
-		delete(bus.handlers, channel)
+	if _, ok := bus.handlers[topic]; ok {
+		delete(bus.handlers, topic)
 	}
 	bus.lock.Unlock()
 }
 
-func (bus *EventBus) PublishAsync(channel string, args ...interface{}) {
+func (bus *EventBus) PublishAsync(topic string, args ...interface{}) {
 	bus.wg.Add(1)
 	go func() {
 		defer bus.wg.Done()
-		bus.Publish(channel, args...)
+		bus.Publish(topic, args...)
 	}()
 }
 
-// Publish - execute callback defined for a channel. Any addional argument will be tranfered to the callback.
-func (bus *EventBus) Publish(channel string, args ...interface{}) {
+// Publish - execute callback defined for a topic. Any addional argument will be tranfered to the callback.
+func (bus *EventBus) Publish(topic string, args ...interface{}) {
 	bus.lock.Lock()
-	if handler, ok := bus.handlers[channel]; ok {
-		removeAfterExec, _ := bus.flagOnce[channel]
+	if handler, ok := bus.handlers[topic]; ok {
+		removeAfterExec, _ := bus.flagOnce[topic]
 		args_ := make([]reflect.Value, 0)
 		for _, arg := range args {
 			args_ = append(args_, reflect.ValueOf(arg))
 		}
 		handler.Call(args_)
 		if removeAfterExec {
-			delete(bus.handlers, channel)
-			bus.flagOnce[channel] = false
+			delete(bus.handlers, topic)
+			bus.flagOnce[topic] = false
 		}
 	}
 	bus.lock.Unlock()
