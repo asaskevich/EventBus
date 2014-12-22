@@ -1,6 +1,7 @@
 package EventBus
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 )
@@ -24,29 +25,31 @@ func New() *EventBus {
 }
 
 // Subscribe - subscribe to a channel.
-func (bus *EventBus) Subscribe(channel string, fn interface{}) {
+func (bus *EventBus) Subscribe(channel string, fn interface{}) error {
 	bus.lock.Lock()
 	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
 		bus.lock.Unlock()
-		return
+		return fmt.Errorf("%s is not of type reflect.Func", reflect.TypeOf(fn).Kind())
 	}
 	v := reflect.ValueOf(fn)
 	bus.handlers[channel] = v
 	bus.flagOnce[channel] = false
 	bus.lock.Unlock()
+	return nil
 }
 
 // SubscribeOnce - subscribe to a channel once. Handler will be removed after executing.
-func (bus *EventBus) SubscribeOnce(channel string, fn interface{}) {
+func (bus *EventBus) SubscribeOnce(channel string, fn interface{}) error {
 	bus.lock.Lock()
 	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
 		bus.lock.Unlock()
-		return
+		return fmt.Errorf("%s is not of type reflect.Func", reflect.TypeOf(fn).Kind())
 	}
 	v := reflect.ValueOf(fn)
 	bus.handlers[channel] = v
 	bus.flagOnce[channel] = true
 	bus.lock.Unlock()
+	return nil
 }
 
 // Unsubscribe - remove callback defined for a channel.
