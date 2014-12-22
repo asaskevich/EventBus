@@ -47,6 +47,7 @@ func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
 	v := reflect.ValueOf(fn)
 	bus.handlers[topic] = v
 	bus.flagOnce[topic] = true
+	return nil
 }
 
 // Unsubscribe - remove callback defined for a topic.
@@ -57,7 +58,7 @@ func (bus *EventBus) Unsubscribe(topic string) error {
 		delete(bus.handlers, topic)
 		return nil
 	}
-	return fmt.Errorf("topic %s doesn't exist", channel)
+	return fmt.Errorf("topic %s doesn't exist", topic)
 }
 
 func (bus *EventBus) PublishAsync(topic string, args ...interface{}) {
