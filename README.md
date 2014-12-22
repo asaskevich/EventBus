@@ -1,6 +1,6 @@
 EventBus
 ======
-[![GoDoc](https://godoc.org/github.com/asaskevich/EventBus?status.svg)](https://godoc.org/github.com/asaskevich/EventBus)[![Build Status](https://travis-ci.org/asaskevich/EventBus.svg)](https://travis-ci.org/asaskevich/EventBus)[![Coverage Status](https://img.shields.io/coveralls/asaskevich/EventBus.svg)](https://coveralls.io/r/asaskevich/EventBus?branch=master)
+[![GoDoc](https://godoc.org/github.com/asaskevich/EventBus?status.svg)](https://godoc.org/github.com/asaskevich/EventBus) [![Coverage Status](https://img.shields.io/coveralls/asaskevich/EventBus.svg)](https://coveralls.io/r/asaskevich/EventBus?branch=master) [![Build Status](https://travis-ci.org/asaskevich/EventBus.svg)](https://travis-ci.org/asaskevich/EventBus)
 
 Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.
 
@@ -115,6 +115,10 @@ bus.Unsubscribe("main:slow_calculator");
 
 ####  WaitAsync()
 WaitAsync waits for all async callbacks to complete.
+
+#### Notes
+Documentation is available here: [godoc.org](https://godoc.org/github.com/asaskevich/EventBus).
+Full information about code coverage is also available here: [EventBus on gocover.io](http://gocover.io/github.com/asaskevich/EventBus).
 
 #### Support
 If you do have a contribution for the package feel free to put up a Pull Request or open Issue.
