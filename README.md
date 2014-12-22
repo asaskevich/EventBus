@@ -1,5 +1,6 @@
 EventBus
 ======
+[![GoDoc](https://godoc.org/github.com/asaskevich/EventBus?status.svg)](https://godoc.org/github.com/asaskevich/EventBus)
 Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.
 
 #### Installation
@@ -116,3 +117,8 @@ WaitAsync waits for all async callbacks to complete.
 
 #### Support
 If you do have a contribution for the package feel free to put up a Pull Request or open Issue.
+
+#### Special thanks to [contributors](https://github.com/asaskevich/EventBus/graphs/contributors)
+* [Brian Downs](https://github.com/briandowns)
+* [Dominik Schulz](https://github.com/gittex)
+* [bennAH](https://github.com/bennAH)
