@@ -53,12 +53,16 @@ func (bus *EventBus) SubscribeOnce(channel string, fn interface{}) error {
 }
 
 // Unsubscribe - remove callback defined for a channel.
-func (bus *EventBus) Unsubscribe(channel string) {
+func (bus *EventBus) Unsubscribe(channel string) error {
 	bus.lock.Lock()
 	if _, ok := bus.handlers[channel]; ok {
 		delete(bus.handlers, channel)
+		bus.lock.Unlock()
+		return nil
 	}
+	// Adding for safety until PR with defer is merged
 	bus.lock.Unlock()
+	return fmt.Errorf("topic %s doesn't exist", channel)
 }
 
 func (bus *EventBus) PublishAsync(channel string, args ...interface{}) {
