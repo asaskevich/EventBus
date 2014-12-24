@@ -45,6 +45,10 @@ func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
 	return nil
 }
 
+// SubscribeAsync subscribes to a topic with an asynchronous callback
+// Transactional determines whether subsequent callbacks for a topic are 
+// run serially (true) or concurrently (false)
+// Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeAsync(topic string, fn interface{}, transactional bool) error {
 	bus.lock.Lock()
 	defer bus.lock.Unlock()
@@ -73,6 +77,9 @@ func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
 	return nil
 }
 
+// SubscribeOnceAsync subscribes to a topic once with an asyncrhonous callback
+// Handler will be removed after executing.
+// Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeOnceAsync(topic string, fn interface{}) error {
 	bus.lock.Lock()
 	defer bus.lock.Unlock()
@@ -106,6 +113,7 @@ func (bus *EventBus) Unsubscribe(topic string) error {
 	return fmt.Errorf("topic %s doesn't exist", topic)
 }
 
+// Publish executes callback defined for a topic. Any addional argument will be tranfered to the callback.
 func (bus *EventBus) Publish(topic string, args ...interface{}) {
 	bus.lock.Lock()
 	if handler, ok := bus.handlers[topic]; ok {
