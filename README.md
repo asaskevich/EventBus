@@ -45,7 +45,8 @@ func main() {
 * **HasCallback()**
 * **Unsubscribe()**
 * **Publish()**
-* **PublishAsync()**
+* **SubscribeAsync()**
+* **SubscribeOnceAsync()**
 * **WaitAsync()**
 
 #### New()
@@ -89,29 +90,30 @@ bus.Subscribe("topic:handler", Handler)
 bus.Publish("topic:handler", "Hello, World!");
 ```
 
-#### PublishAsync(topic string, args ...interface{})
-PublishAsync executes callback defined for a topic asynchronously. Useful for slow callbacks.
-Any addional argument will be tranfered to the callback.
+#### SubscribeAsync(topic string, fn interface{}, transactional bool)
+Subscribe to a topic with an asyncrhonous callback. Returns error if `fn` is not a function.
 ```go
 func slowCalculator(a, b int) {
 	time.Sleep(3 * time.Second)
 	fmt.Printf("%d\n", a + b)
 }
-...
-bus := EventBus.New();
-bus.Subscribe("main:slow_calculator", slowCalculator);
 
-bus.Publish("main:slow_calculator", 20, 60); // synchronous execution means wait.
-fmt.Println("I got blocked waiting")
-
-bus.PublishAsync("main:slow_calculator", 30, 70);
-
+bus := EventBus.New()
+bus.SubscribeAsync("main:slow_calculator", slowCalculator, false)
+	
+bus.Publish("main:slow_calculator", 20, 60)
+	
 fmt.Println("start: do some stuff while waiting for a result")
 fmt.Println("end: do some stuff while waiting for a result") 
-
-bus.WaitAsync(); // wait for all async callbacks to complete
-bus.Unsubscribe("main:slow_calculator");
+	
+bus.WaitAsync() // wait for all async callbacks to complete
+	
+fmt.Println("do some stuff after waiting for result") 
 ```
+Transactional determines whether subsequent callbacks for a topic are run serially (true) or concurrently(false)
+
+#### SubscribeOnceAsync(topic string, args ...interface{})
+SubscribeOnceAsync works like SubscribeOnce except the callback to executed asynchronously
 
 ####  WaitAsync()
 WaitAsync waits for all async callbacks to complete.
