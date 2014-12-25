@@ -46,7 +46,7 @@ func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
 }
 
 // SubscribeAsync subscribes to a topic with an asynchronous callback
-// Transactional determines whether subsequent callbacks for a topic are 
+// Transactional determines whether subsequent callbacks for a topic are
 // run serially (true) or concurrently (false)
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeAsync(topic string, fn interface{}, transactional bool) error {
@@ -115,12 +115,13 @@ func (bus *EventBus) Unsubscribe(topic string) error {
 
 // Publish executes callback defined for a topic. Any addional argument will be tranfered to the callback.
 func (bus *EventBus) Publish(topic string, args ...interface{}) {
-	bus.lock.Lock()
+	bus.lock.Lock() // will unlock if handler is not found or always after setUpPublish
 	if handler, ok := bus.handlers[topic]; ok {
 		if !handler.async {
 			bus.doPublish(handler, topic, args...)
 		} else {
-			bus.doPublishAsync(handler, topic, args...)
+			bus.wg.Add(1)
+			go bus.doPublishAsync(handler, topic, args...)
 		}
 	} else {
 		bus.lock.Unlock()
@@ -129,28 +130,20 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 
 func (bus *EventBus) doPublish(handler *eventHandler, topic string, args ...interface{}) {
 	passedArguments := bus.setUpPublish(handler.flagOnce, topic, args...)
-	bus.lock.Unlock()
 	handler.callBack.Call(passedArguments)
 }
 
 func (bus *EventBus) doPublishAsync(handler *eventHandler, topic string, args ...interface{}) {
-	bus.wg.Add(1)
-
-	go func() {
-		defer bus.wg.Done()
-		if handler.transactional {
-			handler.Lock()
-			defer handler.Unlock()
-			bus.doPublish(handler, topic, args...)
-		} else {
-			passedArguments := bus.setUpPublish(handler.flagOnce, topic, args...)
-			bus.lock.Unlock()
-			handler.callBack.Call(passedArguments)
-		}
-	}()
+	defer bus.wg.Done()
+	if handler.transactional {
+		handler.Lock()
+		defer handler.Unlock()
+	}
+	bus.doPublish(handler, topic, args...)
 }
 
 func (bus *EventBus) setUpPublish(removeAfterExec bool, topic string, args ...interface{}) []reflect.Value {
+	defer bus.lock.Unlock()
 	passedArguments := make([]reflect.Value, 0)
 	for _, arg := range args {
 		passedArguments = append(passedArguments, reflect.ValueOf(arg))
