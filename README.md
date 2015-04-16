@@ -2,7 +2,10 @@ EventBus
 ======
 [![GoDoc](https://godoc.org/github.com/asaskevich/EventBus?status.svg)](https://godoc.org/github.com/asaskevich/EventBus) [![Coverage Status](https://img.shields.io/coveralls/asaskevich/EventBus.svg)](https://coveralls.io/r/asaskevich/EventBus?branch=master) [![Build Status](https://travis-ci.org/asaskevich/EventBus.svg)](https://travis-ci.org/asaskevich/EventBus)
 
-Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.
+Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.  
+
+
+Modified so that multiple handlers can Subscribe to the same topic.  
 
 #### Installation
 Make sure that Go is installed on your computer.
@@ -34,7 +37,7 @@ func main() {
 	bus := EventBus.New();
 	bus.Subscribe("main:calculator", calculator);
 	bus.Publish("main:calculator", 20, 40);
-	bus.Unsubscribe("main:calculator");
+	bus.Unsubscribe("main:calculator", calculator);
 }
 ```
 
@@ -74,7 +77,7 @@ bus.SubscribeOnce("topic:handler", HelloWorld)
 #### Unsubscribe(topic string) error
 Remove callback defined for a topic. Returns error if there are no callbacks subscribed to the topic.
 ```go
-bus.Unsubscribe("topic:handler");
+bus.Unsubscribe("topic:handler", HelloWord);
 ```
 
 #### HasCallback(topic string) bool
