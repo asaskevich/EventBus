@@ -46,11 +46,12 @@ func TestSubscribeOnce(t *testing.T) {
 
 func TestUnsubscribe(t *testing.T) {
 	bus := New()
-	bus.Subscribe("topic", func() {})
-	if bus.Unsubscribe("topic") != nil {
+	handler := func() {}
+	bus.Subscribe("topic", handler)
+	if bus.Unsubscribe("topic", handler) != nil {
 		t.Fail()
 	}
-	if bus.Unsubscribe("topic") == nil {
+	if bus.Unsubscribe("topic", handler) == nil {
 		t.Fail()
 	}
 }
