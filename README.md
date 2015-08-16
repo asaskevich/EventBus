@@ -133,3 +133,4 @@ If you do have a contribution for the package feel free to put up a Pull Request
 * [Brian Downs](https://github.com/briandowns)
 * [Dominik Schulz](https://github.com/gittex)
 * [bennAH](https://github.com/bennAH)
+* [Timofey Koolin] (https://github.com/rekby)
