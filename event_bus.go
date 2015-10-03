@@ -31,19 +31,23 @@ func New() *EventBus {
 	}
 }
 
-// Subscribe subscribes to a topic.
-// Returns error if `fn` is not a function.
-func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
+// doSubscribe handles the subscription logic and is utilized by the public Subscribe functions
+func (bus *EventBus) doSubscribe(topic string, fn interface{}, handler *eventHandler) error {
 	bus.lock.Lock()
 	defer bus.lock.Unlock()
 	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
 		return fmt.Errorf("%s is not of type reflect.Func", reflect.TypeOf(fn).Kind())
 	}
-	v := reflect.ValueOf(fn)
-	bus.handlers[topic] = append(bus.handlers[topic], &eventHandler{
-		v, false, false, false, false, sync.Mutex{},
-	})
+	bus.handlers[topic] = append(bus.handlers[topic], handler)
 	return nil
+}
+
+// Subscribe subscribes to a topic.
+// Returns error if `fn` is not a function.
+func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
+	return bus.doSubscribe(topic, fn, &eventHandler{
+		reflect.ValueOf(fn), false, false, false, false, sync.Mutex{},
+	})
 }
 
 // SubscribeAsync subscribes to a topic with an asynchronous callback
@@ -51,47 +55,26 @@ func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
 // run serially (true) or concurrently (false)
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeAsync(topic string, fn interface{}, transactional bool) error {
-	bus.lock.Lock()
-	defer bus.lock.Unlock()
-	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
-		return fmt.Errorf("%s is not of type reflect.Func", reflect.TypeOf(fn).Kind())
-	}
-	v := reflect.ValueOf(fn)
-	bus.handlers[topic] = append(bus.handlers[topic], &eventHandler{
-		v, false, true, transactional, false, sync.Mutex{},
+	return bus.doSubscribe(topic, fn, &eventHandler{
+		reflect.ValueOf(fn), false, true, transactional, false, sync.Mutex{},
 	})
-	return nil
 }
 
 // SubscribeOnce subscribes to a topic once. Handler will be removed after executing.
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
-	bus.lock.Lock()
-	defer bus.lock.Unlock()
-	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
-		return fmt.Errorf("%s is not of type reflect.Func", reflect.TypeOf(fn).Kind())
-	}
-	v := reflect.ValueOf(fn)
-	bus.handlers[topic] = append(bus.handlers[topic], &eventHandler{
-		v, true, false, false, false, sync.Mutex{},
+	return bus.doSubscribe(topic, fn, &eventHandler{
+		reflect.ValueOf(fn), true, false, false, false, sync.Mutex{},
 	})
-	return nil
 }
 
 // SubscribeOnceAsync subscribes to a topic once with an asyncrhonous callback
 // Handler will be removed after executing.
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeOnceAsync(topic string, fn interface{}) error {
-	bus.lock.Lock()
-	defer bus.lock.Unlock()
-	if !(reflect.TypeOf(fn).Kind() == reflect.Func) {
-		return fmt.Errorf("%s is not of type reflect.Func", reflect.TypeOf(fn).Kind())
-	}
-	v := reflect.ValueOf(fn)
-	bus.handlers[topic] = append(bus.handlers[topic], &eventHandler{
-		v, true, true, false, false, sync.Mutex{},
+	return bus.doSubscribe(topic, fn, &eventHandler{
+		reflect.ValueOf(fn), true, true, false, false, sync.Mutex{},
 	})
-	return nil
 }
 
 // HasCallback returns true if exists any callback subscribed to the topic.
