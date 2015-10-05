@@ -5,26 +5,23 @@ EventBus
 
 Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.  
 
-
-*Modified so that multiple handlers can Subscribe to the same topic.*  
-
 #### Installation
 Make sure that Go is installed on your computer.
 Type the following command in your terminal:
 
-	go get github.com/gaxunil/EventBus
+	go get github.com/asaskevich/EventBus
 
 After it the package is ready to use.
 
 #### Import package in your project
 Add following line in your `*.go` file:
 ```go
-import "github.com/gaxunil/EventBus"
+import "github.com/asaskevich/EventBus"
 ```
 If you unhappy to use long `EventBus`, you can do something like this:
 ```go
 import (
-	evbus "github.com/gaxunil/EventBus"
+	evbus "github.com/asaskevich/EventBus"
 )
 ```
 
@@ -122,6 +119,34 @@ SubscribeOnceAsync works like SubscribeOnce except the callback to executed asyn
 ####  WaitAsync()
 WaitAsync waits for all async callbacks to complete.
 
+#### Cross Process Events
+Works with two rpc services:
+- a client service to listen to remotely published events from a server
+- a server service to listen to client subscriptions
+
+server.go
+```go
+func main() {
+    server := NewServer(":2010", "/_server_bus_", New())
+    server.Start()
+    // ...
+    server.EventBus().Publish("main:calculator", 4, 6)
+    // ...
+    server.Stop()
+}
+```
+
+client.go
+```go
+func main() {
+    client := NewClient(":2015", "/_client_bus_", New())
+    client.Start()
+    client.Subscribe("main:calculator", calculator, ":2010", "/_server_bus_")
+    // ...
+    client.Stop()
+}    
+```
+
 #### Notes
 Documentation is available here: [godoc.org](https://godoc.org/github.com/gaxunil/EventBus).
 Full information about code coverage is also available here: [EventBus on gocover.io](http://gocover.io/github.com/gaxunil/EventBus).
@@ -133,4 +158,5 @@ If you do have a contribution for the package feel free to put up a Pull Request
 * [Brian Downs](https://github.com/briandowns)
 * [Dominik Schulz](https://github.com/gittex)
 * [bennAH](https://github.com/bennAH)
-* [Timofey Koolin] (https://github.com/rekby)
+* [John Noble] (https://github.com/gaxunil)
+* [Evan Borgstrom] (https://github.com/borgstrom)
