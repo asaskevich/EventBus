@@ -68,7 +68,7 @@ func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
 	})
 }
 
-// SubscribeOnceAsync subscribes to a topic once with an asyncrhonous callback
+// SubscribeOnceAsync subscribes to a topic once with an asynchronous callback
 // Handler will be removed after executing.
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeOnceAsync(topic string, fn interface{}) error {
@@ -100,7 +100,7 @@ func (bus *EventBus) Unsubscribe(topic string, handler interface{}) error {
 	return fmt.Errorf("topic %s doesn't exist", topic)
 }
 
-// Publish executes callback defined for a topic. Any addional argument will be tranfered to the callback.
+// Publish executes callback defined for a topic. Any additional argument will be transferred to the callback.
 func (bus *EventBus) Publish(topic string, args ...interface{}) {
 	bus.lock.Lock() // will unlock if handler is not found or always after setUpPublish
 	defer bus.lock.Unlock()
