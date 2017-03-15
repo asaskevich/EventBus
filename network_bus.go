@@ -15,7 +15,7 @@ type NetworkBus struct {
 	*Client
 	*Server
 	service   *NetworkBusService
-	sharedBus *EventBus
+	sharedBus Bus
 	address   string
 	path      string
 }
@@ -33,7 +33,7 @@ func NewNetworkBus(address, path string) *NetworkBus {
 }
 
 // EventBus - returns wrapped event bus
-func (networkBus *NetworkBus) EventBus() *EventBus {
+func (networkBus *NetworkBus) EventBus() Bus {
 	return networkBus.sharedBus
 }
 
@@ -56,8 +56,7 @@ func (networkBus *NetworkBus) Start() error {
 		server.HandleHTTP(networkBus.path, "/debug"+networkBus.path)
 		l, e := net.Listen("tcp", networkBus.address)
 		if e != nil {
-			err = e
-			fmt.Errorf("listen error:", e)
+			err = fmt.Errorf("listen error: %v", e)
 		}
 		service.wg.Add(1)
 		go http.Serve(l, nil)
