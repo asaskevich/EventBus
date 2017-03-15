@@ -138,6 +138,9 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 				bus.doPublish(handler, topic, args...)
 			} else {
 				bus.wg.Add(1)
+				if handler.transactional {
+					handler.Lock()
+				}
 				go bus.doPublishAsync(handler, topic, args...)
 			}
 		}
@@ -159,7 +162,6 @@ func (bus *EventBus) doPublish(handler *eventHandler, topic string, args ...inte
 func (bus *EventBus) doPublishAsync(handler *eventHandler, topic string, args ...interface{}) {
 	defer bus.wg.Done()
 	if handler.transactional {
-		handler.Lock()
 		defer handler.Unlock()
 	}
 	bus.doPublish(handler, topic, args...)
