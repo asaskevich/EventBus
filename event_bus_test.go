@@ -133,6 +133,8 @@ func TestSubscribeAsync(t *testing.T) {
 
 	bus.WaitAsync()
 
+	time.Sleep(10 * time.Millisecond)
+
 	if numResults != 2 {
 		t.Fail()
 	}
