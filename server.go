@@ -35,7 +35,7 @@ type SubscribeArg struct {
 
 // Server - object capable of being subscribed to by remote handlers
 type Server struct {
-	eventBus    *EventBus
+	eventBus    Bus
 	address     string
 	path        string
 	subscribers map[string][]*SubscribeArg
@@ -43,7 +43,7 @@ type Server struct {
 }
 
 // NewServer - create a new Server at the address and path
-func NewServer(address, path string, eventBus *EventBus) *Server {
+func NewServer(address, path string, eventBus Bus) *Server {
 	server := new(Server)
 	server.eventBus = eventBus
 	server.address = address
@@ -54,7 +54,7 @@ func NewServer(address, path string, eventBus *EventBus) *Server {
 }
 
 // EventBus - returns wrapped event bus
-func (server *Server) EventBus() *EventBus {
+func (server *Server) EventBus() Bus {
 	return server.eventBus
 }
 
@@ -63,7 +63,7 @@ func (server *Server) rpcCallback(subscribeArg *SubscribeArg) func(args ...inter
 		client, connErr := rpc.DialHTTPPath("tcp", subscribeArg.ClientAddr, subscribeArg.ClientPath)
 		defer client.Close()
 		if connErr != nil {
-			fmt.Errorf("Dialing", connErr)
+			fmt.Errorf("dialing: %v", connErr)
 		}
 		clientArg := new(ClientArg)
 		clientArg.Topic = subscribeArg.Topic
@@ -71,7 +71,7 @@ func (server *Server) rpcCallback(subscribeArg *SubscribeArg) func(args ...inter
 		var reply bool
 		err := client.Call(subscribeArg.ServiceMethod, clientArg, &reply)
 		if err != nil {
-			fmt.Errorf("Dialing", err)
+			fmt.Errorf("dialing: %v", err)
 		}
 	}
 }
@@ -99,7 +99,7 @@ func (server *Server) Start() error {
 		l, e := net.Listen("tcp", server.address)
 		if e != nil {
 			err = e
-			fmt.Errorf("listen error:", e)
+			fmt.Errorf("listen error: %v", e)
 		}
 		service.started = true
 		service.wg.Add(1)

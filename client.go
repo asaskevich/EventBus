@@ -22,14 +22,14 @@ type ClientArg struct {
 
 // Client - object capable of subscribing to a remote event bus
 type Client struct {
-	eventBus *EventBus
+	eventBus Bus
 	address  string
 	path     string
 	service  *ClientService
 }
 
 // NewClient - create a client object with the address and server path
-func NewClient(address, path string, eventBus *EventBus) *Client {
+func NewClient(address, path string, eventBus Bus) *Client {
 	client := new(Client)
 	client.eventBus = eventBus
 	client.address = address
@@ -39,7 +39,7 @@ func NewClient(address, path string, eventBus *EventBus) *Client {
 }
 
 // EventBus - returns the underlying event bus
-func (client *Client) EventBus() *EventBus {
+func (client *Client) EventBus() Bus {
 	return client.eventBus
 }
 
@@ -53,25 +53,25 @@ func (client *Client) doSubscribe(topic string, fn interface{}, serverAddr, serv
 	rpcClient, err := rpc.DialHTTPPath("tcp", serverAddr, serverPath)
 	defer rpcClient.Close()
 	if err != nil {
-		fmt.Errorf("dialing:", err)
+		fmt.Errorf("dialing: %v", err)
 	}
 	args := &SubscribeArg{client.address, client.path, PublishService, subscribeType, topic}
 	reply := new(bool)
 	err = rpcClient.Call(RegisterService, args, reply)
 	if err != nil {
-		fmt.Errorf("Register error:", err)
+		fmt.Errorf("Register error: %v", err)
 	}
 	if *reply {
 		client.eventBus.Subscribe(topic, fn)
 	}
 }
 
-// Subscribe - method to subscribe to a topic in a remote event bus
+//Subscribe subscribes to a topic in a remote event bus
 func (client *Client) Subscribe(topic string, fn interface{}, serverAddr, serverPath string) {
 	client.doSubscribe(topic, fn, serverAddr, serverPath, Subscribe)
 }
 
-// Subscribe once - subscribe once to a topic in a remote event bus
+//SubscribeOnce subscribes once to a topic in a remote event bus
 func (client *Client) SubscribeOnce(topic string, fn interface{}, serverAddr, serverPath string) {
 	client.doSubscribe(topic, fn, serverAddr, serverPath, SubscribeOnce)
 }
@@ -87,7 +87,7 @@ func (client *Client) Start() error {
 		l, e := net.Listen("tcp", client.address)
 		if e != nil {
 			err = e
-			fmt.Errorf("listen error:", e)
+			fmt.Errorf("listen error: %v", e)
 		}
 		service.wg.Add(1)
 		service.started = true
