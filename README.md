@@ -148,13 +148,13 @@ func main() {
 ```
 
 #### Notes
-Documentation is available here: [godoc.org](https://godoc.org/github.com/gaxunil/EventBus).
-Full information about code coverage is also available here: [EventBus on gocover.io](http://gocover.io/github.com/gaxunil/EventBus).
+Documentation is available here: [godoc.org](https://godoc.org/github.com/asaskevich/EventBus).
+Full information about code coverage is also available here: [EventBus on gocover.io](http://gocover.io/github.com/asaskevich/EventBus).
 
 #### Support
 If you do have a contribution for the package feel free to put up a Pull Request or open Issue.
 
-#### Special thanks to [contributors](https://github.com/gaxunil/EventBus/graphs/contributors)
+#### Special thanks to [contributors](https://github.com/asaskevich/EventBus/graphs/contributors)
 * [Brian Downs](https://github.com/briandowns)
 * [Dominik Schulz](https://github.com/gittex)
 * [bennAH](https://github.com/bennAH)
