@@ -45,7 +45,7 @@ type eventHandler struct {
 	flagOnce      bool
 	async         bool
 	transactional bool
-	sync.Mutex    // lock for an event handler - useful for running async callbacks serially
+	sync.Mutex // lock for an event handler - useful for running async callbacks serially
 }
 
 // New returns new EventBus with empty handlers.
@@ -131,8 +131,12 @@ func (bus *EventBus) Unsubscribe(topic string, handler interface{}) error {
 func (bus *EventBus) Publish(topic string, args ...interface{}) {
 	bus.lock.Lock() // will unlock if handler is not found or always after setUpPublish
 	defer bus.lock.Unlock()
-	if handlers, ok := bus.handlers[topic]; ok {
-		for i, handler := range handlers {
+	if handlers, ok := bus.handlers[topic]; ok && 0 < len(handlers) {
+		// Handlers slice may be changed by removeHandler and Unsubscribe during iteration,
+		// so make a copy and iterate the copied slice.
+		copyHandlers := make([]*eventHandler, 0, len(handlers))
+		copyHandlers = append(copyHandlers, handlers...)
+		for i, handler := range copyHandlers {
 			if handler.flagOnce {
 				bus.removeHandler(topic, i)
 			}
@@ -167,6 +171,10 @@ func (bus *EventBus) removeHandler(topic string, idx int) {
 		return
 	}
 	l := len(bus.handlers[topic])
+
+	if !(0 <= idx && idx < l) {
+		return
+	}
 
 	copy(bus.handlers[topic][idx:], bus.handlers[topic][idx+1:])
 	bus.handlers[topic][l-1] = nil // or the zero value of T
