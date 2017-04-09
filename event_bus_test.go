@@ -44,6 +44,21 @@ func TestSubscribeOnce(t *testing.T) {
 	}
 }
 
+func TestSubscribeOnceAndManySubscribe(t *testing.T) {
+	bus := New()
+	event := "topic"
+	flag := 0
+	fn := func() { flag += 1 }
+	bus.SubscribeOnce(event, fn)
+	bus.Subscribe(event, fn)
+	bus.Subscribe(event, fn)
+	bus.Publish(event)
+
+	if flag != 3 {
+		t.Fail()
+	}
+}
+
 func TestUnsubscribe(t *testing.T) {
 	bus := New()
 	handler := func() {}
