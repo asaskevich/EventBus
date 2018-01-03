@@ -3,7 +3,7 @@ EventBus
 
 [![GoDoc](https://godoc.org/github.com/asaskevich/EventBus?status.svg)](https://godoc.org/github.com/asaskevich/EventBus) [![Coverage Status](https://img.shields.io/coveralls/asaskevich/EventBus.svg)](https://coveralls.io/r/asaskevich/EventBus?branch=master) [![Build Status](https://travis-ci.org/asaskevich/EventBus.svg)](https://travis-ci.org/asaskevich/EventBus)
 
-Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.  
+Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.
 
 #### Installation
 Make sure that Go is installed on your computer.
@@ -72,7 +72,7 @@ func HelloWorld() { ... }
 bus.SubscribeOnce("topic:handler", HelloWorld)
 ```
 
-#### Unsubscribe(topic string) error
+#### Unsubscribe(topic string, fn interface{}) error
 Remove callback defined for a topic. Returns error if there are no callbacks subscribed to the topic.
 ```go
 bus.Unsubscribe("topic:handler", HelloWord);
@@ -82,7 +82,7 @@ bus.Unsubscribe("topic:handler", HelloWord);
 Returns true if exists any callback subscribed to the topic.
 
 #### Publish(topic string, args ...interface{})
-Publish executes callback defined for a topic. Any addional argument will be tranfered to the callback.
+Publish executes callback defined for a topic. Any additional argument will be transferred to the callback.
 ```go
 func Handler(str string) { ... }
 ...
@@ -92,7 +92,7 @@ bus.Publish("topic:handler", "Hello, World!");
 ```
 
 #### SubscribeAsync(topic string, fn interface{}, transactional bool)
-Subscribe to a topic with an asyncrhonous callback. Returns error if `fn` is not a function.
+Subscribe to a topic with an asynchronous callback. Returns error if `fn` is not a function.
 ```go
 func slowCalculator(a, b int) {
 	time.Sleep(3 * time.Second)
@@ -101,15 +101,15 @@ func slowCalculator(a, b int) {
 
 bus := EventBus.New()
 bus.SubscribeAsync("main:slow_calculator", slowCalculator, false)
-	
+
 bus.Publish("main:slow_calculator", 20, 60)
-	
+
 fmt.Println("start: do some stuff while waiting for a result")
-fmt.Println("end: do some stuff while waiting for a result") 
-	
+fmt.Println("end: do some stuff while waiting for a result")
+
 bus.WaitAsync() // wait for all async callbacks to complete
-	
-fmt.Println("do some stuff after waiting for result") 
+
+fmt.Println("do some stuff after waiting for result")
 ```
 Transactional determines whether subsequent callbacks for a topic are run serially (true) or concurrently(false)
 
@@ -144,7 +144,7 @@ func main() {
     client.Subscribe("main:calculator", calculator, ":2010", "/_server_bus_")
     // ...
     client.Stop()
-}    
+}
 ```
 
 #### Notes
