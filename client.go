@@ -84,15 +84,12 @@ func (client *Client) Start() error {
 		server := rpc.NewServer()
 		server.Register(service)
 		server.HandleHTTP(client.path, "/debug"+client.path)
-		l, e := net.Listen("tcp", client.address)
-		if e != nil {
-			err = e
-			fmt.Errorf("listen error: %v", e)
-			return e
-		}
-		service.wg.Add(1)
-		service.started = true
-		go http.Serve(l, nil)
+		l, err := net.Listen("tcp", client.address)
+		if err == nil {
+			service.wg.Add(1)
+			service.started = true
+			go http.Serve(l, nil)	
+		}	
 	} else {
 		err = errors.New("Client service already started")
 	}
