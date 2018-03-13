@@ -88,6 +88,7 @@ func (client *Client) Start() error {
 		if e != nil {
 			err = e
 			fmt.Errorf("listen error: %v", e)
+			return e
 		}
 		service.wg.Add(1)
 		service.started = true
