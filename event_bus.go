@@ -51,9 +51,9 @@ type eventHandler struct {
 // New returns new EventBus with empty handlers.
 func New() Bus {
 	b := &EventBus{
-		make(map[string][]*eventHandler),
-		sync.Mutex{},
-		sync.WaitGroup{},
+		handlers:make(map[string][]*eventHandler),
+		lock:sync.Mutex{},
+		wg:sync.WaitGroup{},
 	}
 	return Bus(b)
 }
