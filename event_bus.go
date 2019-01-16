@@ -1,6 +1,7 @@
 package EventBus
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"sync"
@@ -10,6 +11,7 @@ import (
 type BusSubscriber interface {
 	Subscribe(topic string, fn interface{}) error
 	SubscribeAsync(topic string, fn interface{}, transactional bool) error
+	SubscribeAsyncWithNewContext(topic string, fn interface{}, transactional bool) error
 	SubscribeOnce(topic string, fn interface{}) error
 	SubscribeOnceAsync(topic string, fn interface{}) error
 	Unsubscribe(topic string, handler interface{}) error
@@ -46,6 +48,7 @@ type eventHandler struct {
 	async         bool
 	transactional bool
 	sync.Mutex // lock for an event handler - useful for running async callbacks serially
+	withNewCtx bool
 }
 
 // New returns new EventBus with empty handlers.
@@ -73,7 +76,7 @@ func (bus *EventBus) doSubscribe(topic string, fn interface{}, handler *eventHan
 // Returns error if `fn` is not a function.
 func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
 	return bus.doSubscribe(topic, fn, &eventHandler{
-		reflect.ValueOf(fn), false, false, false, sync.Mutex{},
+		reflect.ValueOf(fn), false, false, false, sync.Mutex{}, false,
 	})
 }
 
@@ -83,7 +86,13 @@ func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeAsync(topic string, fn interface{}, transactional bool) error {
 	return bus.doSubscribe(topic, fn, &eventHandler{
-		reflect.ValueOf(fn), false, true, transactional, sync.Mutex{},
+		reflect.ValueOf(fn), false, true, transactional, sync.Mutex{}, false,
+	})
+}
+
+func (bus *EventBus) SubscribeAsyncWithNewContext(topic string, fn interface{}, transactional bool) error {
+	return bus.doSubscribe(topic, fn, &eventHandler{
+		reflect.ValueOf(fn), false, true, transactional, sync.Mutex{}, true,
 	})
 }
 
@@ -91,7 +100,7 @@ func (bus *EventBus) SubscribeAsync(topic string, fn interface{}, transactional 
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
 	return bus.doSubscribe(topic, fn, &eventHandler{
-		reflect.ValueOf(fn), true, false, false, sync.Mutex{},
+		reflect.ValueOf(fn), true, false, false, sync.Mutex{}, false,
 	})
 }
 
@@ -100,7 +109,7 @@ func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeOnceAsync(topic string, fn interface{}) error {
 	return bus.doSubscribe(topic, fn, &eventHandler{
-		reflect.ValueOf(fn), true, true, false, sync.Mutex{},
+		reflect.ValueOf(fn), true, true, false, sync.Mutex{}, false,
 	})
 }
 
@@ -147,7 +156,17 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 				if handler.transactional {
 					handler.Lock()
 				}
-				go bus.doPublishAsync(handler, topic, args...)
+				var asyncArgs []interface{}
+				if handler.withNewCtx {
+					if len(args) == 0 {
+						panic("context expected, got no args")
+					}
+					asyncArgs = append(asyncArgs, context.Background())
+					asyncArgs = append(asyncArgs, args[1:]...)
+				} else {
+					asyncArgs = args
+				}
+				go bus.doPublishAsync(handler, topic, asyncArgs...)
 			}
 		}
 	}
