@@ -1,6 +1,7 @@
 package EventBus
 
 import (
+	"context"
 	"testing"
 	"time"
 )
@@ -154,3 +155,85 @@ func TestSubscribeAsync(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestSubscribeAsyncContextCancelled(t *testing.T) {
+	var isCancelledDone bool
+	isNotCancelledDone := true
+
+	bus := New()
+	bus.SubscribeAsync("topic", func(ctx context.Context, done *bool) {
+		select {
+		case <-time.NewTimer(10*time.Millisecond).C:
+			*done = false
+		case <-ctx.Done():
+			*done = true
+		}
+	}, false)
+
+	notCancelled, notCancel := context.WithCancel(context.Background())
+	cancelled, cancel := context.WithCancel(context.Background())
+	bus.Publish("topic", notCancelled, &isNotCancelledDone)
+	bus.Publish("topic", cancelled, &isCancelledDone)
+	defer notCancel()
+	cancel()
+
+	bus.WaitAsync()
+
+	if isNotCancelledDone {
+		t.Fail()
+	}
+	if !isCancelledDone {
+		t.Fail()
+	}
+}
+
+func TestSubscribeAsyncWithNewContextNoArgs(t *testing.T) {
+	defer func() {
+		if r := recover(); r != nil {
+			if r != "context expected, got no args" {
+				t.Fail()
+			}
+		}
+	}()
+	bus := New()
+	bus.SubscribeAsyncWithNewContext("topic", func(ctx context.Context) {}, false)
+	bus.Publish("topic")
+}
+
+func TestSubscribeAsyncWithNewContext(t *testing.T) {
+	isCancelledDone := true
+	isNotCancelledDone := true
+
+	bus := New()
+	bus.SubscribeAsyncWithNewContext("topic", func(ctx context.Context, done *bool) {
+		select {
+		case <-time.NewTimer(10*time.Millisecond).C:
+			*done = false
+		case <-ctx.Done():
+			*done = true
+		}
+	}, false)
+
+	notCancelled, notCancel := context.WithCancel(context.Background())
+	cancelled, cancel := context.WithCancel(context.Background())
+	bus.Publish("topic", notCancelled, &isNotCancelledDone)
+	bus.Publish("topic", cancelled, &isCancelledDone)
+	defer notCancel()
+	cancel()
+
+	bus.WaitAsync()
+
+	if isCancelledDone {
+		t.Fail()
+	}
+	if isNotCancelledDone {
+		t.Fail()
+	}
+}
+
+//func TestSubscribeAsyncNewContext(t *testing.T) {
+//	bus := New()
+//	bus.SubscribeAsyncWithNewContext("topic", func(context.Context, i int, k string) {
+//
+//	}, false)
+//}
