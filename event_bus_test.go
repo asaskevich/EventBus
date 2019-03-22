@@ -154,3 +154,20 @@ func TestSubscribeAsync(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestManySubscribeOnce(t *testing.T) {
+	bus := New()
+	event := "topic"
+	var flags [3]byte
+
+	bus.SubscribeOnce(event, func() { flags[0]++ })
+	bus.SubscribeOnce(event, func() { flags[1]++ })
+	bus.Subscribe(event, func() { flags[2]++ })
+
+	bus.Publish(event)
+	bus.Publish(event)
+
+	if flags != [3]byte{1, 1, 2} {
+		t.Fail()
+	}
+}
