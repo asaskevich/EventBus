@@ -134,8 +134,8 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 	if handlers, ok := bus.handlers[topic]; ok && 0 < len(handlers) {
 		// Handlers slice may be changed by removeHandler and Unsubscribe during iteration,
 		// so make a copy and iterate the copied slice.
-		copyHandlers := make([]*eventHandler, 0, len(handlers))
-		copyHandlers = append(copyHandlers, handlers...)
+		copyHandlers := make([]*eventHandler, len(handlers))
+		copy(copyHandlers, handlers)
 		for i, handler := range copyHandlers {
 			if handler.flagOnce {
 				bus.removeHandler(topic, i)
