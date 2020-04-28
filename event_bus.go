@@ -145,7 +145,9 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 			} else {
 				bus.wg.Add(1)
 				if handler.transactional {
+					bus.lock.Unlock()
 					handler.Lock()
+					bus.lock.Lock()
 				}
 				go bus.doPublishAsync(handler, topic, args...)
 			}
