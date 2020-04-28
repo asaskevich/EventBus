@@ -45,7 +45,7 @@ type eventHandler struct {
 	flagOnce      bool
 	async         bool
 	transactional bool
-	sync.Mutex // lock for an event handler - useful for running async callbacks serially
+	sync.Mutex    // lock for an event handler - useful for running async callbacks serially
 }
 
 // New returns new EventBus with empty handlers.
@@ -154,7 +154,7 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 }
 
 func (bus *EventBus) doPublish(handler *eventHandler, topic string, args ...interface{}) {
-	passedArguments := bus.setUpPublish(topic, args...)
+	passedArguments := bus.setUpPublish(handler, args...)
 	handler.callBack.Call(passedArguments)
 }
 
@@ -193,12 +193,17 @@ func (bus *EventBus) findHandlerIdx(topic string, callback reflect.Value) int {
 	return -1
 }
 
-func (bus *EventBus) setUpPublish(topic string, args ...interface{}) []reflect.Value {
-
-	passedArguments := make([]reflect.Value, 0)
-	for _, arg := range args {
-		passedArguments = append(passedArguments, reflect.ValueOf(arg))
+func (bus *EventBus) setUpPublish(callback *eventHandler, args ...interface{}) []reflect.Value {
+	funcType := callback.callBack.Type()
+	passedArguments := make([]reflect.Value, len(args))
+	for i, v := range args {
+		if v == nil {
+			passedArguments[i] = reflect.New(funcType.In(i)).Elem()
+		} else {
+			passedArguments[i] = reflect.ValueOf(v)
+		}
 	}
+
 	return passedArguments
 }
 

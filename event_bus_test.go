@@ -101,12 +101,16 @@ func TestUnsubscribeMethod(t *testing.T) {
 
 func TestPublish(t *testing.T) {
 	bus := New()
-	bus.Subscribe("topic", func(a int, b int) {
-		if a != b {
+	bus.Subscribe("topic", func(a int, err error) {
+		if a != 10 {
+			t.Fail()
+		}
+
+		if err != nil {
 			t.Fail()
 		}
 	})
-	bus.Publish("topic", 10, 10)
+	bus.Publish("topic", 10, nil)
 }
 
 func TestSubcribeOnceAsync(t *testing.T) {
