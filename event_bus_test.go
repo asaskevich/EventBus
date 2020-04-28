@@ -71,6 +71,34 @@ func TestUnsubscribe(t *testing.T) {
 	}
 }
 
+type handler struct {
+	val int
+}
+
+func (h *handler) Handle() {
+	h.val++
+}
+
+func TestUnsubscribeMethod(t *testing.T) {
+	bus := New()
+	h := &handler{val: 0}
+
+	bus.Subscribe("topic", h.Handle)
+	bus.Publish("topic")
+	if bus.Unsubscribe("topic", h.Handle) != nil {
+		t.Fail()
+	}
+	if bus.Unsubscribe("topic", h.Handle) == nil {
+		t.Fail()
+	}
+	bus.Publish("topic")
+	bus.WaitAsync()
+
+	if h.val != 1 {
+		t.Fail()
+	}
+}
+
 func TestPublish(t *testing.T) {
 	bus := New()
 	bus.Subscribe("topic", func(a int, b int) {
