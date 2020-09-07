@@ -1,8 +1,14 @@
 language: go
 
 go:
-  - 1.x
+  - 1.12.x
+  - tip
 
-notifications:
-  email:
-    - bwatas@gmail.com
+before_install:
+  - go get -t -v ./...
+
+script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
