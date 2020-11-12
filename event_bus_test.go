@@ -52,9 +52,14 @@ func TestSubscribeOnceAndManySubscribe(t *testing.T) {
 	bus.SubscribeOnce(event, fn)
 	bus.Subscribe(event, fn)
 	bus.Subscribe(event, fn)
+	bus.SubscribeOnce(event, fn)
 	bus.Publish(event)
 
-	if flag != 3 {
+	if flag != 4 {
+		t.Fail()
+	}
+	bus.Publish(event)
+	if flag != 6 {
 		t.Fail()
 	}
 }
