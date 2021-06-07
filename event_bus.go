@@ -211,5 +211,7 @@ func (bus *EventBus) setUpPublish(callback *eventHandler, args ...interface{}) [
 
 // WaitAsync waits for all async callbacks to complete
 func (bus *EventBus) WaitAsync() {
+	bus.lock.Lock()
+	defer bus.lock.Unlock()
 	bus.wg.Wait()
 }

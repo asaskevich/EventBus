@@ -188,3 +188,18 @@ func TestSubscribeAsync(t *testing.T) {
 	//	t.Fail()
 	//}
 }
+
+func TestSubscribeAsyncWithMultipleGoroutine(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		bus := New()
+		bus.SubscribeAsync("topic", func() {
+			time.Sleep(time.Millisecond)
+		}, false)
+		bus.Publish("topic")
+		go func() {
+			time.Sleep(time.Millisecond)
+			bus.Publish("topic")
+		}()
+		bus.WaitAsync()
+	}
+}
