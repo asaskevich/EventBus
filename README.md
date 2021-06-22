@@ -32,10 +32,10 @@ func calculator(a int, b int) {
 }
 
 func main() {
-	bus := EventBus.New();
-	bus.Subscribe("main:calculator", calculator);
-	bus.Publish("main:calculator", 20, 40);
-	bus.Unsubscribe("main:calculator", calculator);
+	bus := EventBus.New()
+	bus.Subscribe("main:calculator", calculator)
+	bus.Publish("main:calculator", 20, 40)
+	bus.Unsubscribe("main:calculator", calculator)
 }
 ```
 
@@ -53,7 +53,7 @@ func main() {
 #### New()
 New returns new EventBus with empty handlers.
 ```go
-bus := EventBus.New();
+bus := EventBus.New()
 ```
 
 #### Subscribe(topic string, fn interface{}) error
@@ -75,7 +75,7 @@ bus.SubscribeOnce("topic:handler", HelloWorld)
 #### Unsubscribe(topic string, fn interface{}) error
 Remove callback defined for a topic. Returns error if there are no callbacks subscribed to the topic.
 ```go
-bus.Unsubscribe("topic:handler", HelloWord);
+bus.Unsubscribe("topic:handler", HelloWord)
 ```
 
 #### HasCallback(topic string) bool
@@ -88,7 +88,7 @@ func Handler(str string) { ... }
 ...
 bus.Subscribe("topic:handler", Handler)
 ...
-bus.Publish("topic:handler", "Hello, World!");
+bus.Publish("topic:handler", "Hello, World!")
 ```
 
 #### SubscribeAsync(topic string, fn interface{}, transactional bool)
@@ -158,5 +158,5 @@ If you do have a contribution for the package feel free to put up a Pull Request
 * [Brian Downs](https://github.com/briandowns)
 * [Dominik Schulz](https://github.com/gittex)
 * [bennAH](https://github.com/bennAH)
-* [John Noble] (https://github.com/gaxunil)
-* [Evan Borgstrom] (https://github.com/borgstrom)
+* [John Noble](https://github.com/gaxunil)
+* [Evan Borgstrom](https://github.com/borgstrom)
