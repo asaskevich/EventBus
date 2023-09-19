@@ -188,3 +188,59 @@ func TestSubscribeAsync(t *testing.T) {
 	//	t.Fail()
 	//}
 }
+
+func TestPubSub_Unsubscribe(t *testing.T) {
+	capacity, testIndex := 100, 76
+	bus := New()
+	topicName := "TestPubSub_Unsubscribe"
+
+	chs := make([]chan bool, capacity)
+	for i := 0; i < capacity; i++ {
+		chs[i] = make(chan bool, 1)
+	}
+
+	// create many functions with same pointer
+	funcs := make([]func(event bool), capacity)
+	for i := 0; i < capacity; i++ {
+		i := i
+		f := func(event bool) {
+			chs[i] <- event
+		}
+		funcs[i] = f
+		bus.Subscribe(topicName, f)
+	}
+
+	// publish and check if signal received
+	bus.Publish(topicName, true)
+	for i := 0; i < capacity; i++ {
+		select {
+		case <-chs[i]:
+			// signal received
+		case <-time.After(time.Millisecond):
+			t.Errorf("(%d) signal should be received before Unsubscribe", i)
+		}
+	}
+
+	bus.Unsubscribe(topicName, funcs[testIndex])
+
+	// publish and check if signal is not received
+	bus.Publish(topicName, true)
+	select {
+	case <-chs[testIndex]:
+		t.Error("signal should not be received")
+	case <-time.After(time.Millisecond):
+		// signal is not received
+	}
+	// all other signals received
+	for i := 0; i < capacity-1; i++ {
+		select {
+		case <-chs[i]:
+			// signal received
+		case <-time.After(time.Millisecond):
+			if i == testIndex {
+				continue
+			}
+			t.Errorf("(%d) signal should be received after Unsubscribe", i)
+		}
+	}
+}
