@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-//BusSubscriber defines subscription-related bus behavior
+// BusSubscriber defines subscription-related bus behavior
 type BusSubscriber interface {
 	Subscribe(topic string, fn interface{}) error
 	SubscribeAsync(topic string, fn interface{}, transactional bool) error
@@ -15,18 +15,18 @@ type BusSubscriber interface {
 	Unsubscribe(topic string, handler interface{}) error
 }
 
-//BusPublisher defines publishing-related bus behavior
+// BusPublisher defines publishing-related bus behavior
 type BusPublisher interface {
 	Publish(topic string, args ...interface{})
 }
 
-//BusController defines bus control behavior (checking handler's presence, synchronization)
+// BusController defines bus control behavior (checking handler's presence, synchronization)
 type BusController interface {
 	HasCallback(topic string) bool
 	WaitAsync()
 }
 
-//Bus englobes global (subscribe, publish, control) bus behavior
+// Bus englobes global (subscribe, publish, control) bus behavior
 type Bus interface {
 	BusController
 	BusSubscriber
@@ -187,7 +187,8 @@ func (bus *EventBus) findHandlerIdx(topic string, callback reflect.Value) int {
 	if _, ok := bus.handlers[topic]; ok {
 		for idx, handler := range bus.handlers[topic] {
 			if handler.callBack.Type() == callback.Type() &&
-				handler.callBack.Pointer() == callback.Pointer() {
+				handler.callBack.Pointer() == callback.Pointer() &&
+				reflect.DeepEqual(handler.callBack, callback) {
 				return idx
 			}
 		}
