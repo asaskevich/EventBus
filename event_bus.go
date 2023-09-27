@@ -136,9 +136,9 @@ func (bus *EventBus) Publish(topic string, args ...interface{}) {
 		// so make a copy and iterate the copied slice.
 		copyHandlers := make([]*eventHandler, len(handlers))
 		copy(copyHandlers, handlers)
-		for i, handler := range copyHandlers {
+		for _, handler := range copyHandlers {
 			if handler.flagOnce {
-				bus.removeHandler(topic, i)
+				bus.removeHandler(topic, bus.findHandlerIdx(topic, reflect.ValueOf(handler)))
 			}
 			if !handler.async {
 				bus.doPublish(handler, topic, args...)
